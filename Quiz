@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPA Element Mastery</title>
+    <style>
+        :root {
+            --bg: #121212;
+            --card: #1e1e1e;
+            --text: #e0e0e0;
+            --accent: #bb86fc;
+            --correct: #03dac6;
+            --wrong: #cf6679;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        #quiz-container { background: var(--card); padding: 2rem; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 90%; max-width: 500px; text-align: center; }
+        .progress-bar { background: #333; height: 10px; border-radius: 5px; margin-bottom: 20px; overflow: hidden; }
+        #progress { background: var(--accent); height: 100%; width: 0%; transition: width 0.3s; }
+        h2 { margin-top: 0; font-size: 1.2rem; min-height: 3rem; }
+        .options { display: grid; gap: 10px; margin-top: 20px; }
+        button { background: #333; color: white; border: 2px solid transparent; padding: 12px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 1rem; }
+        button:hover { border-color: var(--accent); background: #444; }
+        button.correct { background: var(--correct) !important; color: #000; font-weight: bold; }
+        button.wrong { background: var(--wrong) !important; color: #000; }
+        #score-screen { display: none; }
+        .stat { font-size: 0.9rem; color: #aaa; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<div id="quiz-container">
+    <div class="stat" id="stat-line">Question 1 of 50</div>
+    <div class="progress-bar"><div id="progress"></div></div>
+    
+    <div id="game-screen">
+        <h2 id="question">Loading...</h2>
+        <div class="options" id="options"></div>
+    </div>
+
+    <div id="score-screen">
+        <h1>Quiz Complete!</h1>
+        <p id="final-score"></p>
+        <button onclick="location.reload()">Try Again</button>
+    </div>
+</div>
+
+<script>
+    // Data sourced from IPA_Unsur_Tabel.docx
+    const elements = [
+        // Logam [cite: 2]
+        { name: "Aluminium", latin: "Aluminium", sym: "Al", type: "Logam" }, // [cite: 3]
+        { name: "Barium", latin: "Barium", sym: "Ba", type: "Logam" }, // [cite: 4]
+        { name: "Besi", latin: "Ferrum", sym: "Fe", type: "Logam" }, // [cite: 5]
+        { name: "Emas", latin: "Aurum", sym: "Au", type: "Logam" }, // [cite: 6]
+        { name: "Kalium", latin: "Kalium", sym: "K", type: "Logam" }, // [cite: 7]
+        { name: "Kalsium", latin: "Calsium", sym: "Ca", type: "Logam" }, // [cite: 8]
+        { name: "Kromium", latin: "Chromium", sym: "Cr", type: "Logam" }, // [cite: 9]
+        { name: "Magnesium", latin: "Magnesium", sym: "Mg", type: "Logam" }, // [cite: 10]
+        { name: "Mangan", latin: "Manganium", sym: "Mn", type: "Logam" }, // [cite: 11]
+        { name: "Natrium", latin: "Natrium", sym: "Na", type: "Logam" }, // [cite: 12]
+        { name: "Nikel", latin: "Nikelium", sym: "Ni", type: "Logam" }, // [cite: 13]
+        { name: "Kobalt", latin: "Cobaltum", sym: "Co", type: "Logam" }, // [cite: 14]
+        { name: "Tembaga", latin: "Cuprum", sym: "Cu", type: "Logam" }, // [cite: 15]
+        { name: "Seng", latin: "Zincum", sym: "Zn", type: "Logam" }, // [cite: 16]
+        { name: "Litium", latin: "Lithium", sym: "Li", type: "Logam" }, // [cite: 17]
+        { name: "Titanium", latin: "Titanium", sym: "Ti", type: "Logam" }, // [cite: 18]
+        { name: "Perak", latin: "Argentum", sym: "Ag", type: "Logam" }, // [cite: 19]
+        { name: "Platina", latin: "Platinum", sym: "Pt", type: "Logam" }, // [cite: 20]
+        { name: "Raksa", latin: "Hydrargyrum", sym: "Hg", type: "Logam" }, // [cite: 21]
+        { name: "Uranium", latin: "Uranium", sym: "U", type: "Logam" }, // [cite: 22]
+        // Non-Logam [cite: 23]
+        { name: "Belerang", latin: "Sulfur", sym: "S", type: "Non-Logam" }, // [cite: 24]
+        { name: "Bromin", latin: "Bromium", sym: "Br", type: "Non-Logam" }, // [cite: 25]
+        { name: "Fluorin", latin: "Fluorine", sym: "F", type: "Non-Logam" }, // [cite: 26]
+        { name: "Fosforus", latin: "Phosphorus", sym: "P", type: "Non-Logam" }, // [cite: 27]
+        { name: "Helium", latin: "Helium", sym: "He", type: "Non-Logam" }, // [cite: 28]
+        { name: "Hidrogen", latin: "Hydrogenium", sym: "H", type: "Non-Logam" }, // [cite: 29]
+        { name: "Karbon", latin: "Carbonium", sym: "C", type: "Non-Logam" }, // [cite: 30]
+        { name: "Klorin", latin: "Chlorine", sym: "Cl", type: "Non-Logam" }, // [cite: 31]
+        { name: "Neon", latin: "Neon", sym: "Ne", type: "Non-Logam" }, // [cite: 32]
+        { name: "Nitrogen", latin: "Nitrogenium", sym: "N", type: "Non-Logam" }, // [cite: 33]
+        { name: "Oksigen", latin: "Oxygenium", sym: "O", type: "Non-Logam" }, // [cite: 34]
+        { name: "Iodin", latin: "Iodium", sym: "I", type: "Non-Logam" }, // [cite: 35]
+        // Metaloid [cite: 36]
+        { name: "Boron", latin: "Boronium", sym: "B", type: "Metaloid" }, // [cite: 37]
+        { name: "Silikon", latin: "Silicium", sym: "Si", type: "Metaloid" }, // [cite: 38]
+        { name: "Germanium", latin: "Germanium", sym: "Ge", type: "Metaloid" }, // [cite: 39]
+        { name: "Arsen", latin: "Arsenium", sym: "As", type: "Metaloid" }, // [cite: 40]
+        { name: "Antimon", latin: "Stibium", sym: "Sb", type: "Metaloid" }, // [cite: 41]
+        { name: "Tellurium", latin: "Tellurium", sym: "Te", type: "Metaloid" }, // [cite: 42]
+        { name: "Polonium", latin: "Polonium", sym: "Po", type: "Metaloid" } // [cite: 43]
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+    let quizData = [];
+
+    function initQuiz() {
+        const types = ['sym', 'latin', 'type'];
+        for(let i=0; i<50; i++) {
+            const el = elements[Math.floor(Math.random() * elements.length)];
+            const type = types[Math.floor(Math.random() * types.length)];
+            let qText, correct, options = [];
+
+            if(type === 'sym') {
+                qText = `What is the symbol for ${el.name}?`;
+                correct = el.sym;
+                options = elements.map(e => e.sym).filter(s => s !== correct);
+            } else if(type === 'latin') {
+                qText = `What is the Latin name for ${el.name}?`;
+                correct = el.latin;
+                options = elements.map(e => e.latin).filter(l => l !== correct);
+            } else {
+                qText = `Classification of ${el.name}?`;
+                correct = el.type;
+                options = ["Logam", "Non-Logam", "Metaloid"].filter(t => t !== correct);
+            }
+
+            const shuffledOpts = [correct, ...options.sort(() => 0.5 - Math.random()).slice(0, 3)].sort(() => 0.5 - Math.random());
+            quizData.push({ q: qText, a: correct, opts: shuffledOpts });
+        }
+        showQuestion();
+    }
+
+    function showQuestion() {
+        if(currentQuestion >= 50) return showScore();
+        const data = quizData[currentQuestion];
+        document.getElementById('stat-line').innerText = `Question ${currentQuestion + 1} of 50`;
+        document.getElementById('progress').style.width = (currentQuestion / 50 * 100) + "%";
+        document.getElementById('question').innerText = data.q;
+        const optCont = document.getElementById('options');
+        optCont.innerHTML = '';
+        data.opts.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(btn, opt, data.a);
+            optCont.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(btn, selected, correct) {
+        const buttons = document.querySelectorAll('#options button');
+        buttons.forEach(b => b.disabled = true);
+        if(selected === correct) {
+            btn.classList.add('correct');
+            score++;
+        } else {
+            btn.classList.add('wrong');
+            buttons.forEach(b => { if(b.innerText === correct) b.classList.add('correct'); });
+        }
+        setTimeout(() => {
+            currentQuestion++;
+            showQuestion();
+        }, 1200);
+    }
+
+    function showScore() {
+        document.getElementById('game-screen').style.display = 'none';
+        document.getElementById('score-screen').style.display = 'block';
+        document.getElementById('final-score').innerText = `You scored ${score} out of 50!`;
+    }
+
+    initQuiz();
+</script>
+</body>
+</html>
